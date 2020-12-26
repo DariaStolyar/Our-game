@@ -1,0 +1,101 @@
+import pygame
+
+
+class Board:
+    # создание поля
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.board = [[1] * width for _ in range(height)]
+        # значения по умолчанию
+        self.left = 10
+        self.top = 10
+        self.cell_size = 30
+        self.first = True
+
+    # настройка внешнего вида
+    def set_view(self, left, top, cell_size):
+        self.left = left
+        self.top = top
+        self.cell_size = cell_size
+
+    def render(self, screen):
+        colors = {1: (0, 0, 0), 2: (255, 0, 0), 3:(0, 0, 255)}
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.board[y][x] == 1:
+                    pygame.draw.rect(screen, colors[1], (self.left + x * self.cell_size,
+                                                                        self.top + y * self.cell_size, self.cell_size,
+                                                                        self.cell_size), 1)
+                else:
+                    printx(screen, self.cell_size, self.cell_size, self.left + x * self.cell_size,
+                                                                        self.top + y * self.cell_size)
+
+
+    def get_cell(self, mouse_pos):
+        x, y = mouse_pos
+        if x < self.left or y < self.top:
+            return None
+        elif x > self.left + self.width * self.cell_size or y > self.top + self.height * self.cell_size:
+            return None
+        else:
+            x1 = 0
+            y1 = 0
+            while x > self.cell_size + self.left:
+                x -= self.cell_size
+                x1 += 1
+            while y > self.cell_size + self.top:
+                y -= self.cell_size
+                y1 += 1
+            return (x1, y1)
+
+    def on_click(self, cell_coords):
+        a, b = cell_coords
+        if self.board[b][a] == 1:
+            self.board[b][a] = 2
+        elif self.board[b][a] == 2:
+            self.board[b][a] = 3
+        else:
+            self.board[b][a] = 1
+
+
+def block(screen, a, b, x, y):
+    pygame.draw.rect(screen, (50, 50, 50), (x, y, a, b))
+    for i in range(4, a + 2, 8):
+        for j in range(4, b + 2, 8):
+            pygame.draw.rect(screen, (150, 150, 150), (x + a - i, y + b - j, 4, 4))
+    for i in range(4, a + 2, 12):
+        for j in range(4, b + 2, 12):
+            pygame.draw.rect(screen, (100, 100, 100), (x + a - i, y + b - j, 4, 4))
+    for i in range(4, a + 2, 10):
+        for j in range(4, b + 2, 10):
+            pygame.draw.rect(screen, (70, 70, 70), (x + a - i, y + b - j, 4, 4))
+    pygame.draw.rect(screen, (155, 155, 155), (x, y, a, b), 2)
+
+
+if __name__ == '__main__':
+    pygame.init()
+    size = 500, 500
+    screen = pygame.display.set_mode(size)
+    fps = 30  # количество кадров в секунду
+    clock = pygame.time.Clock()
+    board = Board(4, 3)
+    board.set_view(50, 50, 50)
+    running = True
+    play = False
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    board.on_click(board.get_cell(event.pos))
+                elif event.button == 3:
+                    play = True
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    play = True
+
+        screen.fill((0, 0, 0))
+        board.render(screen)
+        pygame.display.flip()
